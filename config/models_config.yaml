@@ -1,0 +1,37 @@
+models:
+  - name: "Claude 3.5 Sonnet"
+    provider: "anthropic"
+    config:
+      model_name: "claude-3-5-sonnet-20240620"
+  
+  - name: "GPT-4o Mini"
+    provider: "openai"
+    config:
+      model_name: "gpt-4o-mini"
+
+  - name: "O1"
+    provider: "openai"
+    config:
+      model_name: "o1-2024-12-17"
+
+  - name: "o1 Mini"
+    provider: "openai"
+    config:
+      model_name: "o1-mini"
+
+  - name: "Deepseek Chat"
+    provider: "deepseek"
+    config:
+      model_name: "deepseek-chat"
+
+  - name: "Deepseek Reasoning"
+    provider: "deepseek"
+    config:
+      model_name: "deepseek-reasoner"
+
+  - name: "OpenRouter Deepseek R1"
+    provider: "openai"
+    config:
+      key: "OPENROUTER_API_KEY"
+      url: "https://openrouter.ai/api/v1"
+      model_name: "deepseek/deepseek-r1"
