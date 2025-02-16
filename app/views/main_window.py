@@ -4,10 +4,12 @@ from PyQt6.QtGui import QIcon, QFont
 import logging
 from datetime import datetime
 from app.models.config import load_config
+from app.services.communications import MessageType
 from app.services.provider_manager import ProviderManager
 from app.views.widgets.model_selection import ModelSelectionWidget
 from app.views.widgets.input_widget import InputWidget
 from app.views.widgets.result_widget import ResultWidget
+
 
 class Worker(QThread):
     finished = pyqtSignal(tuple)  # (response, reasoning)
@@ -29,11 +31,12 @@ class Worker(QThread):
             self.error.emit(e)
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, communication_manager):
         super().__init__()
         self.logger = logging.getLogger('MainWindow')
         self.config = load_config()
         self.provider_manager = ProviderManager(self.config)
+        self.communication_manager = communication_manager
         self.setWindowTitle("LLM Chat Interface")
         self.setMinimumSize(1280, 720)
         
@@ -179,6 +182,8 @@ class MainWindow(QMainWindow):
             self.output_panel.result_display.append(
                 f"[{datetime.now().strftime('%H:%M')}] {self.selected_model} Response:\n{response}\n"
             )
+            # Send the response to the CommunicationManager
+            self.communication_manager.send_message(MessageType.OUTPUT, response)
             user_input = self.input_panel.input_text.toPlainText().strip()
             if reasoning:
                 self.show_reasoning_window(reasoning)

@@ -3,4 +3,4 @@ PyQt6==6.6.1
 python-dotenv==1.0.1
 anthropic==0.45.0
 requests==2.31.0
-
+elevenlabs==1.51.0
