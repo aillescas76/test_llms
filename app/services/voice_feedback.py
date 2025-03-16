@@ -1,20 +1,43 @@
-from app.services.communications import CommunicationManager, MessageType
+from random import choice
 import multiprocessing
-from elevenlabs import ElevenLabs, play
-import openai
 
-def generate_summary(text: str) -> str:
+from elevenlabs import ElevenLabs, stream
+
+from app.services.provider_manager import ProviderManager
+from app.services.communications import CommunicationManager, MessageType
+
+MARIA = "frWnbHZZPAIOUOfRlRLx"
+HECTOR = "QRCFBz1ziQa0tsr2mnML"
+def generate_summary_input(text: str) -> str:
     """
-    Uses the OpenAI API to generate a concise summary of the provided text.
+    Uses a summary model (the first with summary=True in its config) to generate a friendly summary of the provided text.
     """
-    prompt = f"Please provide a concise summary of the following text:\n\n{text}"
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=prompt,
-        max_tokens=60,
-        temperature=0.5,
+    summary_pm = ProviderManager.get_summary_provider_manager()
+    # Assuming the summary provider manager contains only one model.
+    model_name = next(iter(summary_pm.providers))
+    prompt = (
+        f"Act as a friend that get the following request:\n '''{text}'''\n"
+        "Respond in a casual way, keeping the language of the text, but do not provide"
+        " a full response, just act as you want to get some time to think in the response,"
+        " be brief, we do not want to keep talking when the analysis is already done :-)"
     )
-    return response.choices[0].text.strip()
+    response, _ = summary_pm.get_response(model_name, prompt)
+    return response
+
+def generate_summary_output(text: str) -> str:
+    """
+    Uses a summary model to generate a precise summary of the provided text.
+    """
+    summary_pm = ProviderManager.get_summary_provider_manager()
+    # Assuming the summary provider manager contains only one model.
+    model_name = next(iter(summary_pm.providers))
+    prompt = (
+        f"Act as an expert summarizer with precision:\n '''{text}'''\n"
+        "Provide a concise and precise summary that highlights the key points."
+        "Keep the same language as the text."
+    )
+    response, _ = summary_pm.get_response(model_name, prompt)
+    return response
 
 def run_voice_feedback(comm_manager):
     """
@@ -25,20 +48,26 @@ def run_voice_feedback(comm_manager):
         comm_manager: Instance of CommunicationManager to handle message queues
     """
     # Initialize the ElevenLabs client with your API key
-    eleven_client = ElevenLabs(api_key="YOUR_API_KEY")
+    eleven_client = ElevenLabs()
+    # Map message type strings to their corresponding summary functions.
+    summary_funcs = {
+        MessageType.INPUT.value: generate_summary_input,
+        MessageType.OUTPUT.value: generate_summary_output,
+    }
     while True:
         try:
-            message = comm_manager.get_message(MessageType.OUTPUT.value, timeout=5)
-            if message and "payload" in message:
-                # Generate summary using the OpenAI API
-                summary = generate_summary(message['payload'])
-                # Use ElevenLabs to convert the summary text to speech.
-                audio = eleven_client.text_to_speech.convert(
-                    voice_id="JBFqnCBsd6RMkjVDRZzb",
-                    output_format="mp3_44100_128",
-                    text=summary,
-                    model_id="eleven_multilingual_v2",
-                )
-                play(audio)
+            # Poll for a message from either INPUT or OUTPUT queues.
+            result = comm_manager.get_message_from_types([MessageType.INPUT, MessageType.OUTPUT], timeout=1)
+            if result:
+                message, msg_type = result  # msg_type will be a string, e.g., "input" or "output"
+                if message and "payload" in message:
+                    print(f"Summarizing {msg_type} message\n")
+                    summary = summary_funcs[msg_type](message['payload'])
+                    audio_stream = eleven_client.generate(
+                        text=summary,
+                        voice=choice((MARIA, HECTOR)),
+                        model="eleven_flash_v2_5"
+                    )
+                    stream(audio_stream)
         except Exception as e:
             print(f"Error in voice feedback: {str(e)}")

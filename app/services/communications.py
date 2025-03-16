@@ -1,4 +1,5 @@
 import enum
+import time
 from multiprocessing import Queue
 from typing import Any, Dict, Optional, Union
 import multiprocessing
@@ -46,3 +47,26 @@ class CommunicationManager:
             return message
         except Exception:
             return None
+            
+    def get_message_from_types(self, msg_types: list, timeout: Optional[float] = None) -> Optional[tuple]:
+        """
+        Polls the queues corresponding to a list of MessageType (or string) values and returns
+        the first message that appears as a tuple: (message, message_type).
+        Returns None if no message is received within the specified timeout.
+        """
+        # Convert any MessageType to its string value.
+        msg_types = [mt.value if hasattr(mt, "value") else mt for mt in msg_types]
+        start_time = time.perf_counter()
+        while True:
+            for msg_type in msg_types:
+                if msg_type not in self.queues:
+                    continue
+                try:
+                    # Try retrieving the message non-blocking.
+                    message = self.queues[msg_type].get_nowait()
+                    return message, msg_type
+                except Exception:
+                    continue
+            if timeout is not None and (time.perf_counter() - start_time) >= timeout:
+                return None
+            time.sleep(0.05)  # Short sleep to avoid busy polling.

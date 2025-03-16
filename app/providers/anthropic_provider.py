@@ -8,7 +8,7 @@ class AnthropicProvider(BaseProvider):
         self.client = anthropic.Anthropic(api_key=self.get_api_key())
         self.config = config
 
-    def generate_response(self, prompt: str) -> tuple[str, Optional[str]]:
+    def _generate_response_implementation(self, prompt: str) -> tuple[str, Optional[str]]:
         message = self.client.messages.create(
             model=self.config['model_name'],
             max_tokens=8192,

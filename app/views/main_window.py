@@ -101,6 +101,8 @@ class MainWindow(QMainWindow):
                 color: #DEDEDE;
             }
         """)
+        
+        self.showMaximized()
 
     def on_model_selected(self, item):
         self.selected_model = item.text()
@@ -162,8 +164,10 @@ class MainWindow(QMainWindow):
         try:
             # Save request before starting thread
             self._save_request(text)
+            # Send the response to the CommunicationManager
+            self.communication_manager.send_message(MessageType.INPUT, text)
+
             self.logger.info(f"Starting request to {self.selected_model}")
-            
             # Create worker thread
             self.worker = Worker(self.provider_manager, self.selected_model, text)
             self.worker.finished.connect(self.handle_response)
@@ -179,11 +183,10 @@ class MainWindow(QMainWindow):
         """Handle successful response from worker thread"""
         try:
             response, reasoning = result
+            self.communication_manager.send_message(MessageType.OUTPUT, response)
             self.output_panel.result_display.append(
                 f"[{datetime.now().strftime('%H:%M')}] {self.selected_model} Response:\n{response}\n"
             )
-            # Send the response to the CommunicationManager
-            self.communication_manager.send_message(MessageType.OUTPUT, response)
             user_input = self.input_panel.input_text.toPlainText().strip()
             if reasoning:
                 self.show_reasoning_window(reasoning)

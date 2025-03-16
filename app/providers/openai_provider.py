@@ -16,7 +16,7 @@ class OpenaiProvider(BaseProvider):
         self.client = OpenAI(**params)
         self.config = config
 
-    def generate_response(self, prompt: str) -> tuple[str, Optional[str]]:
+    def _generate_response_implementation(self, prompt: str) -> tuple[str, Optional[str]]:
         try:
             self.logger.info(f"Starting OpenAI API call - Model: {self.config['model_name']}")
             self.logger.debug(f"Full prompt content:\n{prompt[:500]}...")

@@ -7,17 +7,26 @@ models:
   - name: "GPT-4o Mini"
     provider: "openai"
     config:
-      model_name: "gpt-4o-mini"
+      model_name: "gpt-4o-mini-2024-07-18"
+      input_cost: 0.15
+      cached_input_cost: 0.075
+      output_cost: 0.60
 
   - name: "O1"
     provider: "openai"
     config:
       model_name: "o1-2024-12-17"
+      input_cost: 15.00
+      cached_input_cost: 7.50
+      output_cost: 60.00
 
   - name: "o1 Mini"
     provider: "openai"
     config:
-      model_name: "o1-mini"
+      model_name: "o1-mini-2024-09-12"
+      input_cost: 1.10
+      cached_input_cost: 0.55
+      output_cost: 4.40
 
   - name: "Deepseek Chat"
     provider: "deepseek"
@@ -35,3 +44,234 @@ models:
       key: "OPENROUTER_API_KEY"
       url: "https://openrouter.ai/api/v1"
       model_name: "deepseek/deepseek-r1"
+
+  - name: "Gemini Flash"
+    provider: "google"
+    config:
+      model_name: "gemini-2.0-flash"
+
+  - name: "gpt-4.5-preview"
+    provider: "openai"
+    config:
+      model_name: "gpt-4.5-preview-2025-02-27"
+      input_cost: 75.00
+      cached_input_cost: 37.50
+      output_cost: 150.00
+
+  - name: "gpt-4o"
+    provider: "openai"
+    config:
+      model_name: "gpt-4o-2024-08-06"
+      input_cost: 2.50
+      cached_input_cost: 1.25
+      output_cost: 10.00
+
+  - name: "gpt-4o-audio-preview"
+    provider: "openai"
+    config:
+      model_name: "gpt-4o-audio-preview-2024-12-17"
+      input_cost: 2.50
+      cached_input_cost: null  # No cached input cost available.
+      output_cost: 10.00
+
+  - name: "gpt-4o-realtime-preview"
+    provider: "openai"
+    config:
+      model_name: "gpt-4o-realtime-preview-2024-12-17"
+      input_cost: 5.00
+      cached_input_cost: 2.50
+      output_cost: 20.00
+
+  - name: "gpt-4o-mini-audio-preview"
+    provider: "openai"
+    config:
+      model_name: "gpt-4o-mini-audio-preview-2024-12-17"
+      input_cost: 0.15
+      cached_input_cost: null  # No cached input cost available.
+      output_cost: 0.60
+
+  - name: "gpt-4o-mini-realtime-preview"
+    provider: "openai"
+    config:
+      model_name: "gpt-4o-mini-realtime-preview-2024-12-17"
+      input_cost: 0.60
+      cached_input_cost: 0.30
+      output_cost: 2.40
+
+  - name: "o3-mini"
+    provider: "openai"
+    config:
+      model_name: "o3-mini-2025-01-31"
+      input_cost: 1.10
+      cached_input_cost: 0.55
+      output_cost: 4.40
+
+  - name: "gpt-4o-mini-search-preview"
+    provider: "openai"
+    config:
+      model_name: "gpt-4o-mini-search-preview-2025-03-11"
+      input_cost: 0.15
+      cached_input_cost: null  # No cached input cost available.
+      output_cost: 0.60
+
+  - name: "gpt-4o-search-preview"
+    provider: "openai"
+    config:
+      model_name: "gpt-4o-search-preview-2025-03-11"
+      input_cost: 2.50
+      cached_input_cost: null  # No cached input cost available.
+      output_cost: 10.00
+
+  - name: "computer-use-preview"
+    provider: "openai"
+    config:
+      model_name: "computer-use-preview-2025-03-11"
+      input_cost: 3.00
+      cached_input_cost: null  # No cached input cost available.
+      output_cost: 12.00
+      
+  - name: "Mixtral 8x7B"
+    provider: "groq"
+    config:
+      model_name: "mixtral-8x7b-32768"
+      temperature: 0.7
+      max_completion_tokens: 4096
+      top_p: 0.9
+      stream: true
+      
+  - name: "Llama 3 70B"
+    provider: "groq"
+    config:
+      model_name: "llama3-70b-8192"
+      temperature: 0.7
+      max_completion_tokens: 4096
+      top_p: 0.9
+      stream: true
+      summary: true
+
+  - name: "distil-whisper-large-v3-en"
+    provider: "groq"
+    config:
+      model_name: "distil-whisper-large-v3-en"
+      # Developer: HuggingFace
+      # Context window: N/A
+      # Max completion tokens: N/A
+      # File size: 25 MB
+
+  - name: "gemma2-9b-it"
+    provider: "groq"
+    config:
+      model_name: "gemma2-9b-it"
+      # Developer: Google
+      # Context window (tokens): 8192
+
+  - name: "llama-3.3-70b-versatile"
+    provider: "groq"
+    config:
+      model_name: "llama-3.3-70b-versatile"
+      max_completion_tokens: 32768
+      # Developer: Meta
+      # Context window: 128K tokens
+
+  - name: "llama-3.1-8b-instant"
+    provider: "groq"
+    config:
+      model_name: "llama-3.1-8b-instant"
+      max_completion_tokens: 8192
+      # Developer: Meta
+      # Context window: 128K tokens
+
+  - name: "llama-guard-3-8b"
+    provider: "groq"
+    config:
+      model_name: "llama-guard-3-8b"
+      # Developer: Meta
+      # Context window (tokens): 8192
+
+  - name: "llama3-70b-8192"
+    provider: "groq"
+    config:
+      model_name: "llama3-70b-8192"
+      # Developer: Meta
+      # Context window (tokens): 8192
+
+  - name: "llama3-8b-8192"
+    provider: "groq"
+    config:
+      model_name: "llama3-8b-8192"
+      # Developer: Meta
+      # Context window (tokens): 8192
+
+  - name: "whisper-large-v3"
+    provider: "groq"
+    config:
+      model_name: "whisper-large-v3"
+      # Developer: OpenAI
+      # File size: 25 MB
+
+  - name: "whisper-large-v3-turbo"
+    provider: "groq"
+    config:
+      model_name: "whisper-large-v3-turbo"
+      # Developer: OpenAI
+      # File size: 25 MB
+
+  - name: "PaLM 2 Chat (Legacy)"
+    provider: "google"
+    config:
+      model_name: "models/chat-bison-001"
+      version: "001"
+      description: "A legacy text-only model optimized for chat conversations"
+      input_token_limit: 4096
+      output_token_limit: 1024
+      supported_generation_methods:
+        - "generateMessage"
+        - "countMessageTokens"
+      temperature: 0.25
+      top_p: 0.95
+      top_k: 40
+
+  - name: "PaLM 2 (Legacy)"
+    provider: "google"
+    config:
+      model_name: "models/text-bison-001"
+      version: "001"
+      description: "A legacy model that understands text and generates text as an output"
+      input_token_limit: 8196
+      output_token_limit: 1024
+      supported_generation_methods:
+        - "generateText"
+        - "countTextTokens"
+        - "createTunedTextModel"
+      temperature: 0.7
+      top_p: 0.95
+      top_k: 40
+
+  - name: "Embedding Gecko"
+    provider: "google"
+    config:
+      model_name: "models/embedding-gecko-001"
+      version: "001"
+      description: "Obtain a distributed representation of a text."
+      input_token_limit: 1024
+      output_token_limit: 1
+      supported_generation_methods:
+        - "embedText"
+        - "countTextTokens"
+
+  - name: "Gemini 2.0 Flash (Image Generation) Experimental"
+    provider: "google"
+    config:
+      model_name: "models/gemini-2.0-flash-exp-image-generation"
+      version: "2.0"
+      description: "Gemini 2.0 Flash (Image Generation) Experimental"
+      input_token_limit: 1048576
+      output_token_limit: 8192
+      supported_generation_methods:
+        - "generateContent"
+        - "countTokens"
+        - "bidiGenerateContent"
+      temperature: 1
+      top_p: 0.95
+      top_k: 40
+      max_temperature: 2

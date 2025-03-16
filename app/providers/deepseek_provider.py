@@ -10,7 +10,7 @@ class DeepseekProvider(BaseProvider):
         self.logger = logging.getLogger('DeepseekProvider')
         self.config = config
 
-    def generate_response(self, prompt: str) -> tuple[str, Optional[str]]:
+    def _generate_response_implementation(self, prompt: str) -> tuple[str, Optional[str]]:
         try:
             self.logger.info(f"Starting Deepseek API call - Model: {self.config['model_name']}")
             self.logger.debug(f"Full prompt content:\n{prompt[:500]}...")  # Log first 500 chars
@@ -29,7 +29,6 @@ class DeepseekProvider(BaseProvider):
             }
             
             response = requests.post(url, headers=headers, data=json.dumps(data))
-            import ipdb; ipdb.set_trace()
 
             response.raise_for_status()
             result = response.json()
