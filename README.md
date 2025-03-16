@@ -60,6 +60,76 @@ The LLM Chat Interface is a Python application that lets users interact with mul
    - Update `config/models_config.yaml` with your provider-specific configurations.
    - Set the environment variables, if needed, for API keys used in the providers.
 
+## Installing Qt6
+
+For the graphical interface, this application requires Qt6. Please follow the instructions below for your platform:
+
+**Windows:**
+ - Download the official Qt6 installer from [Qt Downloads](https://www.qt.io/download-qt-installer) and follow the installation instructions.
+ - Alternatively, if you only need the Python bindings, install PySide6 (which supports Qt6) via pip:
+   ```bash
+   pip install PySide6
+   ```
+
+**macOS:**
+ - Install Qt6 using Homebrew:
+   ```bash
+   brew install qt6
+   ```
+ - Or download the installer from [Qt Downloads](https://www.qt.io/download-qt-installer).
+
+**Linux (Ubuntu/Debian-based):**
+ - Update your package list and install the Qt6 development packages:
+   ```bash
+   sudo apt update
+   sudo apt install qt6-base-dev
+   ```
+ - Additionally, install the xcb-cursor library which is required by Qt 6.5.0 and later:
+   ```bash
+   sudo apt install libxcb-cursor0
+   ```
+   
+   # Installing libxcb-cursor0 ensures that the Qt xcb platform plugin loads correctly.
+ - If you encounter errors like:
+   
+   ```
+   undefined symbol: _ZN5QFont11tagToStringEj, version Qt_6
+   ```
+   
+   then it is likely that your system's Qt6 libraries are incompatible with the version expected by PyQt6. To resolve this:
+   
+   - Ensure you are using PyQt6 installed via pip—which bundles compatible Qt6 libraries—in your virtual environment:
+     ```bash
+     pip install --upgrade PyQt6
+     ```
+   
+   - If conflicts persist (for example due to system-wide Qt6 libraries), you may need to adjust your environment so that the PyQt6 libraries are preferred. For example:
+     ```bash
+     export LD_LIBRARY_PATH="<path-to-your-venv>/lib/python3.10/site-packages/PyQt6:$LD_LIBRARY_PATH"
+     ```
+   
+   - Alternatively, consider removing or disabling conflicting system-installed Qt6 libraries.
+ - If you encounter errors like:
+   
+   ```
+   undefined symbol: _ZN5QFont11tagToStringEj, version Qt_6
+   ```
+   
+   then it is likely that your system's Qt6 libraries are incompatible with the version expected by PyQt6. To resolve this:
+   
+   - Ensure you are using PyQt6 installed via pip—which bundles compatible Qt6 libraries—in your virtual environment:
+     ```bash
+     pip install --upgrade PyQt6
+     ```
+   
+   - If conflicts persist (for example due to system-wide Qt6 libraries), you may need to adjust your environment so that the PyQt6 libraries are preferred. For example:
+     ```bash
+     export LD_LIBRARY_PATH="<path-to-your-venv>/lib/python3.10/site-packages/PyQt6:$LD_LIBRARY_PATH"
+     ```
+   
+   - Alternatively, consider removing or disabling conflicting system-installed Qt6 libraries.
+ - For other Linux distributions, consult your package manager or use the official installer from [Qt Downloads](https://www.qt.io/download-qt-installer).
+
 4. **Run the Application:**
 
    Execute the main application script:
@@ -67,6 +137,19 @@ The LLM Chat Interface is a Python application that lets users interact with mul
    ```bash
    python -m app.main
    ```
+
+5. **Install mpv for Audio Streaming:**
+
+   The voice feedback functionality requires [mpv](https://mpv.io/) to stream audio. If you encounter an error "mpv not found", install it as follows:
+
+   **macOS:**
+   Install via Homebrew:
+   ```bash
+   brew install mpv
+   ```
+
+   **Linux and Windows:**
+   Download and install it from the [mpv website](https://mpv.io/).
 
 ## Adding/Modifying Providers
 
