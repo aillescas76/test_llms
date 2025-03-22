@@ -19,7 +19,8 @@ def generate_summary_input(text: str) -> str:
         f"Act as a friend that get the following request:\n '''{text}'''\n"
         "Respond in a casual way, keeping the language of the text, but do not provide"
         " a full response, just act as you want to get some time to think in the response,"
-        " be brief, we do not want to keep talking when the analysis is already done :-)"
+        " BE BRIEF and do not give any concrete timeline,"
+        " we do not want to keep talking when the analysis is already done :-)"
     )
     response, _ = summary_pm.get_response(model_name, prompt)
     return response
@@ -32,9 +33,10 @@ def generate_summary_output(text: str) -> str:
     # Assuming the summary provider manager contains only one model.
     model_name = next(iter(summary_pm.providers))
     prompt = (
-        f"Act as an expert summarizer with precision:\n '''{text}'''\n"
+        "You have been given a response to an user question. "
         "Provide a concise and precise summary that highlights the key points."
         "Keep the same language as the text."
+        f"Act as an expert summarizer with precision for the following text:\n '''{text}'''\n"
     )
     response, _ = summary_pm.get_response(model_name, prompt)
     return response

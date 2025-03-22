@@ -1,34 +1,16 @@
 from PyQt6.QtWidgets import (QMainWindow, QHBoxLayout, QWidget, QSizePolicy, QPushButton, QMessageBox, QDialog, QVBoxLayout, QTextEdit)
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QThreadPool
 from PyQt6.QtGui import QIcon, QFont
 import logging
 from datetime import datetime
+import markdown
 from app.models.config import load_config
 from app.services.communications import MessageType
 from app.services.provider_manager import ProviderManager
 from app.views.widgets.model_selection import ModelSelectionWidget
 from app.views.widgets.input_widget import InputWidget
 from app.views.widgets.result_widget import ResultWidget
-
-
-class Worker(QThread):
-    finished = pyqtSignal(tuple)  # (response, reasoning)
-    error = pyqtSignal(Exception)
-    
-    def __init__(self, provider_manager, model_name, prompt):
-        super().__init__()
-        self.provider_manager = provider_manager
-        self.model_name = model_name
-        self.prompt = prompt
-
-    def run(self):
-        try:
-            logging.info(f"Starting LLM call to {self.model_name}")
-            result = self.provider_manager.get_response(self.model_name, self.prompt)
-            self.finished.emit(result)
-            logging.info(f"Completed LLM call to {self.model_name}")
-        except Exception as e:
-            self.error.emit(e)
+from app.workers.worker import Worker, WorkerResult
 
 class MainWindow(QMainWindow):
     def __init__(self, communication_manager):
@@ -37,6 +19,7 @@ class MainWindow(QMainWindow):
         self.config = load_config()
         self.provider_manager = ProviderManager(self.config)
         self.communication_manager = communication_manager
+        self.threadpool = QThreadPool()
         self.setWindowTitle("LLM Chat Interface")
         self.setMinimumSize(1280, 720)
         
@@ -148,74 +131,59 @@ class MainWindow(QMainWindow):
         except Exception as e:
             self.logger.error(f"Error saving response: {str(e)}")
 
-    def process_input(self):
-        self.process_btn.setEnabled(False)
-        self.process_btn.setText("...")
-        self.processing_id = f"[{datetime.now().strftime('%H:%M:%S')}] Processing..."
-        self.output_panel.result_display.append(self.processing_id)
+    def process_input(self) -> None:
+        """Process input by validating, updating the UI, and launching a worker thread."""
+        self.disable_ui_for_processing()
         
-        text = self.input_panel.input_text.toPlainText().strip()
-        if not text:
-            self.show_error("Please enter some text")
-            self.process_btn.setEnabled(True)
-            self.process_btn.setText("→")
+        text: str = self.input_panel.input_text.toPlainText().strip()
+        if not self.validate_input(text):
+            self.enable_ui_after_processing()
             return
-
+        
         try:
-            # Save request before starting thread
+            # Save request before starting thread.
             self._save_request(text)
-            # Send the response to the CommunicationManager
             self.communication_manager.send_message(MessageType.INPUT, text)
 
             self.logger.info(f"Starting request to {self.selected_model}")
-            # Create worker thread
-            self.worker = Worker(self.provider_manager, self.selected_model, text)
-            self.worker.finished.connect(self.handle_response)
-            self.worker.error.connect(self.handle_error)
-            self.worker.start()
+            worker = Worker(self.provider_manager, self.selected_model, text)
+            worker.signals.finished.connect(self.handle_response)
+            worker.signals.error.connect(self.handle_error)
+            self.threadpool.start(worker)
             
         except Exception as e:
             self.logger.error(f"Error starting thread: {str(e)}")
             self.show_error(str(e))
-            self.reset_ui_state()
+            self.finalize_ui_state()
 
-    def handle_response(self, result):
-        """Handle successful response from worker thread"""
+    def handle_response(self, result: WorkerResult) -> None:
+        """Handle a successful response from the worker task."""
         try:
-            response, reasoning = result
+            response = result.response
+            reasoning = result.reasoning
             self.communication_manager.send_message(MessageType.OUTPUT, response)
-            self.output_panel.result_display.append(
-                f"[{datetime.now().strftime('%H:%M')}] {self.selected_model} Response:\n{response}\n"
-            )
-            user_input = self.input_panel.input_text.toPlainText().strip()
+            self.render_response(response)
+            user_input: str = self.input_panel.input_text.toPlainText().strip()
             if reasoning:
                 self.show_reasoning_window(reasoning)
                 self._save_response(f"<Deepseek reasoning>{user_input}", response)
             
-            # Save the full interaction
             self._save_response(user_input, response)
             
         except Exception as e:
             self.logger.error(f"Error handling response: {str(e)}")
         finally:
-            self.reset_ui_state()
+            self.finalize_ui_state()
 
     def handle_error(self, error):
         """Handle errors from worker thread"""
         self.logger.error(f"Error in {self.selected_model} request: {str(error)}")
         self.show_error(f"API Error: {str(error)}")
-        self.reset_ui_state()
+        self.finalize_ui_state()
 
-    def reset_ui_state(self):
-        """Reset UI elements after processing"""
-        self.process_btn.setEnabled(True)
-        self.process_btn.setText("→")
-        self.input_panel.input_text.clear()
-        # Remove processing message
-        current_text = self.output_panel.result_display.toPlainText()
-        self.output_panel.result_display.setPlainText(
-            current_text.replace(self.processing_id, "")
-        )
+    def finalize_ui_state(self) -> None:
+        """Finalize UI state after processing is complete."""
+        self.enable_ui_after_processing()
 
     def show_error(self, message):
         QMessageBox.critical(
@@ -224,3 +192,49 @@ class MainWindow(QMainWindow):
             message,
             QMessageBox.StandardButton.Ok
         )
+        
+    def disable_ui_for_processing(self) -> None:
+        """Disable UI components during processing."""
+        self.process_btn.setEnabled(False)
+        self.process_btn.setText("...")
+        self.processing_id = f"[{datetime.now().strftime('%H:%M:%S')}] Processing..."
+        self.output_panel.result_display.insertHtml(self.processing_id)
+
+    def enable_ui_after_processing(self) -> None:
+        """Re-enable UI components after processing and remove the processing message."""
+        self.process_btn.setEnabled(True)
+        self.process_btn.setText("→")
+        self.input_panel.input_text.clear()
+        # Remove processing message while preserving HTML formatting.
+        html_content: str = self.output_panel.result_display.toHtml()
+        updated_html: str = html_content.replace(self.processing_id, "")
+        self.output_panel.result_display.setHtml(updated_html)
+
+    def validate_input(self, text: str) -> bool:
+        """
+        Validate the user's input text.
+
+        Args:
+            text (str): The input provided by the user.
+
+        Returns:
+            bool: True if valid; otherwise, displays an error and returns False.
+        """
+        if not text.strip():
+            self.show_error("Please enter some text")
+            return False
+        return True
+        
+    def render_response(self, response: str) -> None:
+        """
+        Render a markdown formatted response in the output panel.
+        
+        Args:
+            response (str): The plain text response to format and display.
+        """
+        formatted_markdown_response: str = (
+            f"[{datetime.now().strftime('%H:%M')}] **{self.selected_model} Response:**\n\n{response}\n"
+        )
+        html_text: str = markdown.markdown(formatted_markdown_response, extensions=['extra'])
+        self.output_panel.result_display.insertHtml(html_text)
+        self.output_panel.result_display.insertHtml("<br>")

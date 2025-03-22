@@ -1,14 +1,13 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextEdit
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextBrowser
 
 class ResultWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(10, 10, 10, 10)
-        self.result_display = QTextEdit()
-        self.result_display.setReadOnly(True)
+        self.result_display = QTextBrowser()
         self.result_display.setStyleSheet("""
-            QTextEdit {
+            QTextBrowser {
                 background: #3E3E3E;
                 color: #DEDEDE;
                 border-radius: 8px;
